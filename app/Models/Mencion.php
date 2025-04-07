@@ -8,11 +8,18 @@ class Mencion extends Model
 {
     protected $table = 'menciones';
 
-    protected $fillable = ['texto', 'fuente', 'fecha', 'sentimiento'];
+    protected $fillable = [        
+    'titulo',
+    'enlace',
+    'fuente',
+    'fecha',
+    'descripcion',
+    'sentimiento'
+    ];
 
 
 
-    
+
     public function temas()
     {
         return $this->belongsToMany(Tema::class, 'mencion_tema');

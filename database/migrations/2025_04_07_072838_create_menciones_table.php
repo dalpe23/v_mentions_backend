@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('menciones', function (Blueprint $table) {
             $table->id();
-            $table->text('texto');
+            $table->text('titulo');
             $table->string('fuente');
+            $table->text('enlace');
             $table->dateTime('fecha');
+            $table->text('descripcion');
             $table->enum('sentimiento', ['positivo', 'negativo', 'neutro'])->nullable();
             $table->timestamps();
         });
