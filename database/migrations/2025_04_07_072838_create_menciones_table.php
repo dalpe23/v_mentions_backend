@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('mentions', function (Blueprint $table) {
+        Schema::create('menciones', function (Blueprint $table) {
             $table->id();
-            $table->string('url')->unique();
             $table->text('texto');
             $table->string('fuente');
-            $table->datetime('fecha');
-            $table->string('sentimiento')->nullable();
-            $table->string('tema')->nullable();
-            $table->boolean('alerta_negativa')->default(false);
+            $table->dateTime('fecha');
+            $table->enum('sentimiento', ['positivo', 'negativo', 'neutro'])->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('mentions');
+        Schema::dropIfExists('menciones');
     }
 };
