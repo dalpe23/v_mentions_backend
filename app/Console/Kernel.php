@@ -12,10 +12,10 @@ class Kernel extends ConsoleKernel
         ProcesarMencionesRSS::class,
     ];
 
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-
-    }
+        $schedule->command('app:procesar-menciones-rss')->everyFiveMinutes();
+    }    
 
     protected function commands()
     {
