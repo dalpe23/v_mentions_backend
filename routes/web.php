@@ -1,12 +1,10 @@
 <?php
-
+use App\Http\Controllers\MencionController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MentionController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'version' => app()->version(),
+    ]);
 });
 
-Route::get('/menciones', [MentionController::class, 'index']);
-Route::post('/menciones', [MentionController::class, 'store']);
-Route::get('/menciones/actualizar', [MentionController::class, 'obtenerMenciones']);

@@ -11,6 +11,7 @@
         "laminas/laminas-http": "^2.21",
         "laminas/laminas-loader": "^2.11",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "willvincent/feeds": "^2.7"
     },
