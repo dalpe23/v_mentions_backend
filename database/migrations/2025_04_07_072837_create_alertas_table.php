@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('alertas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('mencion_id')->constrained('menciones')->onDelete('cascade');
-            $table->enum('nivel', ['bajo', 'medio', 'alto']);
+            $table->string('nombre');
             $table->boolean('resuelta')->default(false);
             $table->timestamps();
         });

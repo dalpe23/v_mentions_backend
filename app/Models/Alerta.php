@@ -8,13 +8,13 @@ class Alerta extends Model
 {
     protected $table = 'alertas';
 
-    protected $fillable = ['mencion_id', 'nivel', 'resuelta'];
+    protected $fillable = [
+        'nombre',
+        'resuelta',
+    ];
 
-
-
-    
-    public function mencion()
+    public function menciones()
     {
-        return $this->belongsTo(Mencion::class);
+        return $this->hasMany(Mencion::class);
     }
 }

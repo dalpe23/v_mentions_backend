@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('menciones', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('alerta_id')->nullable()->references('id')->on('alertas');
             $table->text('titulo');
             $table->string('fuente');
             $table->text('enlace');

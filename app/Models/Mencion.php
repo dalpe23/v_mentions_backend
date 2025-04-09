@@ -8,25 +8,18 @@ class Mencion extends Model
 {
     protected $table = 'menciones';
 
-    protected $fillable = [        
-    'titulo',
-    'enlace',
-    'fuente',
-    'fecha',
-    'descripcion',
-    'sentimiento'
+    protected $fillable = [
+        'alerta_id',
+        'titulo',
+        'fuente',
+        'enlace',
+        'fecha',
+        'descripcion',
+        'sentimiento',
     ];
-
-
-
-
-    public function temas()
-    {
-        return $this->belongsToMany(Tema::class, 'mencion_tema');
-    }
 
     public function alerta()
     {
-        return $this->hasOne(Alerta::class);
+        return $this->belongsTo(Alerta::class);
     }
 }
