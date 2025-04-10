@@ -11,10 +11,12 @@ class AlertaSeeder extends Seeder
     {
         Alerta::create([
             'nombre' => 'playas valencia',
+            'user_id' => 1,
         ]);
 
         Alerta::create([
             'nombre' => 'turismo valencia',
+            'user_id' => 1,
         ]);
     }
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('enlace');
             $table->dateTime('fecha');
             $table->text('descripcion');
+            $table->text('tematica')->nullable();
             $table->enum('sentimiento', ['positivo', 'negativo', 'neutro'])->nullable();
             $table->timestamps();
         });

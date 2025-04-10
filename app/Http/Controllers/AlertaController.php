@@ -56,8 +56,16 @@ class AlertaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $alerta = Alerta::find($id);
+
+        if (!$alerta) {
+            return response()->json(['error' => 'Alerta no encontrada'], 404);
+        }
+
+        $alerta->delete();
+
+        return response()->json(['message' => 'Alerta eliminada con éxito']);
     }
 }

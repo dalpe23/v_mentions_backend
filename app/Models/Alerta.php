@@ -11,10 +11,16 @@ class Alerta extends Model
     protected $fillable = [
         'nombre',
         'resuelta',
+        'user_id',
     ];
 
     public function menciones()
     {
         return $this->hasMany(Mencion::class);
+    }
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
