@@ -13,14 +13,10 @@ class ProcesarMencionesRSS extends Command
 
     public function handle()
     {
-        // config('url') debe devolver un array con, por ejemplo, 2 URLs.
         $urls = config('url');
 
-        // Inicializamos el contador de alerta_id.
         $alertaId = 0;
 
-        // Para cada URL se incrementa alertaId; de esta forma, las menciones del primer enlace tendrán alerta_id 1,
-        // las del segundo tendrán alerta_id 2, y así sucesivamente.
         foreach ($urls as $url) {
             $alertaId++;
             $feed = Reader::import($url);
@@ -35,7 +31,6 @@ class ProcesarMencionesRSS extends Command
                 $descripcionLimpia = preg_replace('/[^\p{L}\p{N}\s\.\,\-\:\;\/]/u', '', $descripcionLimpia);
                 $descripcion = trim($descripcionLimpia);
 
-                // Solo se crea la mención si no existe ya una con ese enlace
                 if (!Mencion::where('enlace', $enlace)->exists()) {
                     Mencion::create([
                         'titulo'      => $titulo,

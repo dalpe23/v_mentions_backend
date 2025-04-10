@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('alertas', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->boolean('resuelta')->default(false);
             $table->timestamps();
         });
     }
