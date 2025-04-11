@@ -10,7 +10,7 @@ class AlertaController extends Controller
     /**
      * Devuelve las menciones asociadas a una alerta.
      */
-    public function menciones($id)
+    public function mencionesDeAlerta($id)
     {
         $alerta = Alerta::with('menciones')->find($id);
 
@@ -25,7 +25,10 @@ class AlertaController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
+    {      //añadir que solo se devuelvan las alertas del cliente logueado
+
+
+        
         return response()->json(Alerta::all());
     }
 
@@ -68,4 +71,11 @@ class AlertaController extends Controller
 
         return response()->json(['message' => 'Alerta eliminada con éxito']);
     }
+
+    public function misAlertas(Request $request)
+{
+    $user = $request->user();
+    $alertas = \App\Models\Alerta::where('user_id', $user->id)->get();
+    return response()->json($alertas);
+}
 }

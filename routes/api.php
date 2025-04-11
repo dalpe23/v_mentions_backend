@@ -7,29 +7,50 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AlertaController;
 use App\Http\Controllers\ClienteController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-
-
+/*
+|--------------------------------------------------------------------------
+| Rutas Públicas
+|--------------------------------------------------------------------------
+| Estas rutas no requieren autenticación.
+*/
 Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [AuthController::class, 'register']);
-        
+// Si tienes una ruta de registro, la podrías incluir aquí también.
+// Route::post('register', [AuthController::class, 'register']);
 
-Route::middleware('api')->group(function () {
-
-    // Route::middleware('auth:sanctum')->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-
-    Route::apiResource('menciones', MencionController::class);
+/*
+|--------------------------------------------------------------------------
+| Rutas Protegidas por Sanctum
+|--------------------------------------------------------------------------
+| Todas las rutas dentro de este grupo requieren que el usuario esté autenticado 
+| mediante el middleware auth:sanctum.
+*/
+Route::middleware('auth:sanctum')->group(function () {
     
+    // Obtención del usuario autenticado
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Logout
+    Route::post('logout', [AuthController::class, 'logout']);
+
+    // Rutas de Menciones (utilizamos apiResource para CRUD completo)
+    Route::apiResource('menciones', MencionController::class);
+
+    // Rutas de Alertas:
+    // • "mis-alertas": devuelve solo las alertas del usuario autenticado
+    Route::get('/mis-alertas', [AlertaController::class, 'misAlertas']);
+    
+    // Rutas generales de alertas (puedes protegerlas y luego, dentro de los controladores, 
+    // validar permisos o mostrar sólo alertas del usuario, según tu lógica de negocio)
     Route::get('/alertas', [AlertaController::class, 'index']);
     Route::get('/alertas/{id}', [AlertaController::class, 'show']);
     Route::post('/alertas', [AlertaController::class, 'store']);
     Route::put('/alertas/{id}', [AlertaController::class, 'update']);
     Route::delete('/alertas/{id}', [AlertaController::class, 'destroy']);
-    Route::get('/alertas/{id}/menciones', [AlertaController::class, 'menciones']);
+    Route::get('/alertas/{id}/menciones', [AlertaController::class, 'mencionesDeAlerta']);
+
+    // Rutas de Clientes:
     Route::get('/clientes', [ClienteController::class, 'index']);
     Route::post('/clientes', [ClienteController::class, 'store']);
     Route::put('/clientes/{id}', [ClienteController::class, 'update']);
