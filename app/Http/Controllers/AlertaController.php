@@ -72,10 +72,17 @@ class AlertaController extends Controller
         return response()->json(['message' => 'Alerta eliminada con éxito']);
     }
 
-    public function misAlertas(Request $request)
-{
-    $user = $request->user();
-    $alertas = \App\Models\Alerta::where('user_id', $user->id)->get();
-    return response()->json($alertas);
-}
+    /**
+     * Devuelve las alertas asociadas a un user_id específico.
+     */
+    public function alertasPorUsuario($id)
+    {
+        $alertas = Alerta::where('user_id', $id)->get();
+
+        if ($alertas->isEmpty()) {
+            return response()->json(['error' => 'No se encontraron alertas para este usuario'], 404);
+        }
+
+        return response()->json($alertas);
+    }
 }

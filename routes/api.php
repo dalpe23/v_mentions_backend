@@ -24,6 +24,9 @@ Route::post('login', [AuthController::class, 'login']);
 | Todas las rutas dentro de este grupo requieren que el usuario esté autenticado 
 | mediante el middleware auth:sanctum.
 */
+
+Route::post('logout', [AuthController::class, 'logout']);
+
 Route::middleware('auth:sanctum')->group(function () {
     
     // Obtención del usuario autenticado
@@ -31,18 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // Logout
-    Route::post('logout', [AuthController::class, 'logout']);
-
     // Rutas de Menciones (utilizamos apiResource para CRUD completo)
     Route::apiResource('menciones', MencionController::class);
-
-    // Ruta para obtener todas las menciones del usuario autenticado
-    Route::get('/mis-menciones', [MencionController::class, 'misMenciones']);
-
-    // Rutas de Alertas:
-    // • "mis-alertas": devuelve solo las alertas del usuario autenticado
-    Route::get('/mis-alertas', [AlertaController::class, 'misAlertas']);
     
     // Rutas generales de alertas (puedes protegerlas y luego, dentro de los controladores, 
     // validar permisos o mostrar sólo alertas del usuario, según tu lógica de negocio)
@@ -51,7 +44,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/alertas', [AlertaController::class, 'store']);
     Route::put('/alertas/{id}', [AlertaController::class, 'update']);
     Route::delete('/alertas/{id}', [AlertaController::class, 'destroy']);
+
+    // Ruta para obtener las menciones de una alerta específica
     Route::get('/alertas/{id}/menciones', [AlertaController::class, 'mencionesDeAlerta']);
+    // Ruta para obtener alertas por user_id
+    Route::get('/alertas/usuario/{id}', [AlertaController::class, 'alertasPorUsuario']);
+    // Ruta para obtener menciones de un usuario específico
+    Route::middleware('auth:sanctum')->get('/mis-menciones', [MencionController::class, 'misMenciones']);
+
 
     // Rutas de Clientes:
     Route::get('/clientes', [ClienteController::class, 'index']);

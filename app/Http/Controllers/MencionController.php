@@ -50,10 +50,15 @@ class MencionController extends Controller
     /**
      * Obtiene todas las menciones del usuario autenticado.
      */
+
     public function misMenciones(Request $request)
     {
-        $user = $request->user();
-        $menciones = Mencion::where('user_id', $user->id)->get();
+        $user = $request->user(); 
+        
+        $menciones = Mencion::whereHas('alerta', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->get();
+        
         return response()->json($menciones);
     }
 }
