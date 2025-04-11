@@ -47,8 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Ruta para obtener las menciones de una alerta específica
     Route::get('/alertas/{id}/menciones', [AlertaController::class, 'mencionesDeAlerta']);
-    // Ruta para obtener alertas por user_id
-    Route::get('/alertas/usuario/{id}', [AlertaController::class, 'alertasPorUsuario']);
+    
+    // Ruta para obtener alertas por id
+    Route::middleware('auth:sanctum')->get('/mis-alertas', [AlertaController::class, 'misAlertas']);
     // Ruta para obtener menciones de un usuario específico
     Route::middleware('auth:sanctum')->get('/mis-menciones', [MencionController::class, 'misMenciones']);
 
