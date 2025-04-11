@@ -34,6 +34,8 @@ class AuthController extends BaseController
             $result['name'] = $authUser->name;
             $result['id'] = $authUser->id;
             $result['token'] = $token;
+            $result['email'] = $authUser->email;
+            $result['rol'] = $authUser->rol;
 
 
             return $this->sendResponse($result, 'Usuario autenticado correctamente', 200);

@@ -37,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rutas de Menciones (utilizamos apiResource para CRUD completo)
     Route::apiResource('menciones', MencionController::class);
 
+    // Ruta para obtener todas las menciones del usuario autenticado
+    Route::get('/mis-menciones', [MencionController::class, 'misMenciones']);
+
     // Rutas de Alertas:
     // • "mis-alertas": devuelve solo las alertas del usuario autenticado
     Route::get('/mis-alertas', [AlertaController::class, 'misAlertas']);
