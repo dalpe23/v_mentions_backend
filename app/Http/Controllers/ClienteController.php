@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User; 
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class ClienteController extends Controller
 {
@@ -15,34 +16,30 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
-
         $cliente = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => bcrypt($request->password),
-            'rol'      => 'cliente', 
+            'password' => Hash::make($request->password),
+            'rol'      => 'cliente',
         ]);
 
-        return response()->json($cliente, 201);
+        return response()->json([
+            'message' => 'Cliente creado correctamente',
+        ], 201);
     }
-
-    public function update(Request $request, $id)
-    {
-        $cliente = User::findOrFail($id);
-        
-        $cliente->update($request->only(['name', 'email']));
-        return response()->json($cliente);
-    }
-
+    
+    /**
+     * Elimina un cliente de la base de datos.
+     */
     public function destroy($id)
     {
-        $cliente = User::findOrFail($id);
+        $cliente = User::where('rol', 'cliente')->find($id);
+        if (!$cliente) {
+            return response()->json(['error' => 'Cliente no encontrado'], 404);
+        }
+
         $cliente->delete();
-        return response()->json(['message' => 'Cliente eliminado correctamente.']);
+
+        return response()->json(['message' => 'Cliente eliminado correctamente']);
     }
 }
