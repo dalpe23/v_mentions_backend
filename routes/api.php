@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('menciones', MencionController::class);
     Route::patch('/menciones/{id}/leida', [MencionController::class, 'marcarComoLeida']);
     Route::patch('/menciones/{id}/ponerComoNoLeida', [MencionController::class, 'ponerComoNoLeida']);
+    Route::patch('/menciones/{id}/cambiarSentimiento', [MencionController::class, 'cambiarSentimiento']);
 
     // Rutas generales de alertas (puedes protegerlas y luego, dentro de los controladores, 
     // validar permisos o mostrar sólo alertas del usuario, según tu lógica de negocio)

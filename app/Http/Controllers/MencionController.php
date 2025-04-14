@@ -28,8 +28,9 @@ class MencionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Mencion $mencion)
+    public function show($id)
     {
+        $mencion = Mencion::findOrFail($id);
         return response()->json($mencion);
     }
 
@@ -92,6 +93,21 @@ class MencionController extends Controller
             return response()->json(['success' => false, 'message' => 'Mención no encontrada.'], 404);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error al marcar la mención como no leída.'], 500);
+        }
+    }
+
+    public function cambiarSentimiento(Request $request, $id)
+    {
+        try {
+            $mencion = Mencion::findOrFail($id);
+            $mencion->sentimiento = $request->input('sentimiento');
+            $mencion->save();
+
+            return response()->json(['success' => true, 'message' => 'Sentimiento cambiado.']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Mención no encontrada.'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al cambiar el sentimiento.'], 500);
         }
     }
 
