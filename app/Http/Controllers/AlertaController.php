@@ -83,4 +83,21 @@ class AlertaController extends Controller
         
         return response()->json($alertas);
     }
+
+    /**
+     * Marca una alerta como resuelta.
+     */
+    public function marcarComoResuelta($id)
+    {
+        $alerta = Alerta::find($id);
+
+        if (!$alerta) {
+            return response()->json(['error' => 'Alerta no encontrada'], 404);
+        }
+
+        $alerta->resuelta = true;
+        $alerta->save();
+
+        return response()->json(['message' => 'Alerta marcada como resuelta']);
+    }
 }
