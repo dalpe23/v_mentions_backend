@@ -36,7 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rutas de Menciones (utilizamos apiResource para CRUD completo)
     Route::apiResource('menciones', MencionController::class);
-    
+    Route::patch('/menciones/{id}/leida', [MencionController::class, 'marcarComoLeida']);
+    Route::patch('/menciones/{id}/ponerComoNoLeida', [MencionController::class, 'ponerComoNoLeida']);
+
     // Rutas generales de alertas (puedes protegerlas y luego, dentro de los controladores, 
     // validar permisos o mostrar sólo alertas del usuario, según tu lógica de negocio)
     Route::get('/alertas', [AlertaController::class, 'index']);

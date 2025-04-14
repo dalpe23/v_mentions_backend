@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Mencion;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Exception;
 
 class MencionController extends Controller
 {
@@ -20,7 +22,7 @@ class MencionController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
     }
 
     /**
@@ -28,7 +30,7 @@ class MencionController extends Controller
      */
     public function show(Mencion $mencion)
     {
-        //
+        return response()->json($mencion);
     }
 
     /**
@@ -36,7 +38,8 @@ class MencionController extends Controller
      */
     public function update(Request $request, Mencion $mencion)
     {
-        //
+        $mencion->update($request->all());
+        return response()->json($mencion);
     }
 
     /**
@@ -61,4 +64,35 @@ class MencionController extends Controller
         
         return response()->json($menciones);
     }
+
+    public function marcarComoLeida($id)
+    {
+        try {
+            $mencion = Mencion::findOrFail($id);
+            $mencion->leida = 1;
+            $mencion->save();
+
+            return response()->json(['success' => true, 'message' => 'Mención marcada como leída.']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Mención no encontrada.'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al marcar la mención como leída.'], 500);
+        }
+    }
+
+    public function ponerComoNoLeida($id)
+    {
+        try {
+            $mencion = Mencion::findOrFail($id);
+            $mencion->leida = 0;
+            $mencion->save();
+
+            return response()->json(['success' => true, 'message' => 'Mención marcada como no leída.']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Mención no encontrada.'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al marcar la mención como no leída.'], 500);
+        }
+    }
+
 }

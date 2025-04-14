@@ -11,6 +11,9 @@ class Mencion extends Model
     protected $fillable = [
         'alerta_id',
         'titulo',
+        'titulo_normalizado',
+        'leida',
+        'tematica',
         'fuente',
         'enlace',
         'fecha',
