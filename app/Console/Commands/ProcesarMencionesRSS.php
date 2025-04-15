@@ -5,17 +5,20 @@ namespace App\Console\Commands;
 use Laminas\Feed\Reader\Reader;
 use App\Models\Mencion;
 use Illuminate\Console\Command;
+use App\Services\OpenAIService;
 
 class ProcesarMencionesRSS extends Command
 {
     protected $signature = 'app:procesar-menciones-rss';
-    protected $description = 'Procesa menciones desde los feeds RSS y asigna alerta_id según cada URL, evitando duplicados incluso en distintos idiomas mediante comparación fuzzy';
+    protected $description = 'Procesa menciones desde los feeds RSS, evitando duplicados y completando el análisis (sentimiento y temática) en aquellas que aun no tienen datos.';
 
     public function handle()
     {
+        $openAI = new OpenAIService();
         $urls = config('url');
         $alertaId = 0;
 
+        // ----- Paso 1: Procesar nuevos feeds RSS -----
         foreach ($urls as $url) {
             $alertaId++;
             $feed = Reader::import($url);
@@ -33,12 +36,13 @@ class ProcesarMencionesRSS extends Command
 
                 $fuente = $this->extraerDominio($enlace);
 
-                // Utilizamos la comparación fuzzy para evitar duplicados
+                // Evita duplicados (comparación fuzzy en título normalizado)
                 if ($this->isDuplicateTitle($tituloNormalizado)) {
                     continue;
                 }
 
-                Mencion::create([
+                // Creación de nueva mención (sentimiento y temática quedan nulos)
+                $mencion = Mencion::create([
                     'titulo'             => $titulo,
                     'titulo_normalizado' => $tituloNormalizado,
                     'enlace'             => $enlace,
@@ -47,89 +51,125 @@ class ProcesarMencionesRSS extends Command
                     'descripcion'        => $descripcion,
                     'alerta_id'          => $alertaId,
                 ]);
+
+                // Si la mención recién creada aún no tiene análisis, se procesa:
+                if (is_null($mencion->sentimiento) || is_null($mencion->tematica)) {
+                    $this->analizarYActualizarMencion($mencion, $openAI);
+                }
             }
         }
 
-        $this->info("Menciones procesadas correctamente.");
+        // ----- Paso 2: Actualizar menciones existentes que no tienen análisis completado -----
+        $mencionesIncompletas = Mencion::whereNull('sentimiento')
+            ->orWhereNull('tematica')
+            ->get();
+
+        if ($mencionesIncompletas->isNotEmpty()) {
+            foreach ($mencionesIncompletas as $mencion) {
+                $this->analizarYActualizarMencion($mencion, $openAI);
+            }
+        }
+
+        $this->info("Menciones procesadas y completadas correctamente.");
     }
 
     /**
-     * Normaliza un título para evitar duplicados.
+     * Analiza una mención usando el servicio OpenAI y actualiza sus campos de sentimiento y temática.
      *
-     * Esta función elimina HTML, convierte a minúsculas, quita acentos y signos de puntuación.
+     * @param \App\Models\Mencion $mencion
+     * @param \App\Services\OpenAIService $openAI
+     */
+    protected function analizarYActualizarMencion($mencion, OpenAIService $openAI)
+    {
+        // Combina título y descripción para un análisis más completo
+        $textoAnalizar = "{$mencion->titulo}. {$mencion->descripcion}";
+        $analysis = $openAI->analizarSentimientoYTematica($textoAnalizar);
+
+        if ($analysis) {
+            $sentimientoGPT = strtolower($analysis['sentimiento'] ?? 'neutro');
+
+            $sentimiento = match ($sentimientoGPT) {
+                'positivo', 'positive' => 'positivo',
+                'negativo', 'negative' => 'negativo',
+                'neutro', 'neutral', null => 'neutro',
+                default => 'neutro'
+            };
+
+            $tematicas = isset($analysis['tematicas']) && is_array($analysis['tematicas'])
+                ? implode(', ', $analysis['tematicas'])
+                : '';
+
+            $mencion->update([
+                'sentimiento' => $sentimiento,
+                'tematica'    => $tematicas,
+            ]);
+
+            $this->line("✅ Mención ID {$mencion->id} actualizada: sentimiento={$sentimiento}, tematica={$tematicas}");
+        } else {
+            $this->warn("❌ No se pudo analizar la mención ID {$mencion->id}");
+        }
+    }
+
+    /**
+     * Normaliza un título: elimina HTML, lo convierte a minúsculas, quita acentos y signos de puntuación.
+     *
+     * @param string $title
+     * @return string
      */
     protected function normalizeTitle($title)
     {
-        // Decodifica entidades HTML y elimina etiquetas
         $clean = html_entity_decode(strip_tags($title), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        // Conviértelo a minúsculas
         $clean = mb_strtolower($clean, 'UTF-8');
-        // Quitar acentos usando iconv. Si iconv falla, usamos el string original.
         $normalized = iconv('UTF-8', 'ASCII//TRANSLIT', $clean);
         if ($normalized === false) {
             $normalized = $clean;
         }
-        // Eliminar signos de puntuación y caracteres especiales dejando letras, números y espacios.
         $normalized = preg_replace('/[^a-z0-9\s]/', '', $normalized);
-        // Reducir múltiples espacios y recortar.
         $normalized = preg_replace('/\s+/', ' ', $normalized);
-        $normalized = trim($normalized);
-        // En caso de quedar vacío, usar el título original limpio.
-        if ($normalized === '') {
-            $normalized = mb_strtolower(trim($clean), 'UTF-8');
-        }
-        return $normalized;
+        return trim($normalized ?: $clean);
     }
 
-/**
- * Extrae el dominio real del enlace.
- */
-protected function extraerDominio($enlace)
-{
-    $dominio = 'Desconocido';
-    if ($enlace) {
-        $parsed = parse_url($enlace);
-        if (isset($parsed['host'])) {
-            // Remover "www." si está presente:
-            $host = preg_replace('/^www\./i', '', $parsed['host']);
-
-            // Si es un enlace de Google y tiene el parámetro 'url', usamos ese enlace real.
-            if (in_array(strtolower($parsed['host']), ['google.com', 'www.google.com']) && isset($parsed['query'])) {
-                parse_str($parsed['query'], $queryParams);
-                if (isset($queryParams['url'])) {
-                    $urlReal = $queryParams['url'];
-                    $parsedReal = parse_url($urlReal);
-                    if (isset($parsedReal['host'])) {
-                        // Remover "www." si aparece
-                        $dominio = preg_replace('/^www\./i', '', $parsedReal['host']);
+    /**
+     * Extrae el dominio real del enlace, eliminando el prefijo "www." si existe.
+     *
+     * @param string|null $enlace
+     * @return string
+     */
+    protected function extraerDominio($enlace)
+    {
+        $dominio = 'Desconocido';
+        if ($enlace) {
+            $parsed = parse_url($enlace);
+            if (isset($parsed['host'])) {
+                $host = preg_replace('/^www\./i', '', $parsed['host']);
+                if (in_array(strtolower($parsed['host']), ['google.com', 'www.google.com']) && isset($parsed['query'])) {
+                    parse_str($parsed['query'], $queryParams);
+                    if (isset($queryParams['url'])) {
+                        $urlReal = $queryParams['url'];
+                        $parsedReal = parse_url($urlReal);
+                        $dominio = isset($parsedReal['host']) ? preg_replace('/^www\./i', '', $parsedReal['host']) : $urlReal;
                     } else {
-                        $dominio = $urlReal; // fallback
+                        $dominio = $host;
                     }
                 } else {
                     $dominio = $host;
                 }
-            } else {
-                $dominio = $host;
             }
         }
+        return $dominio;
     }
-    return $dominio;
-}
 
     /**
-     * Comprueba si existe una mención con un título similar usando comparación fuzzy.
+     * Comprueba si existe una mención similar usando comparación fuzzy en el título normalizado.
      *
      * @param string $tituloNormalizado
      * @return bool
      */
     protected function isDuplicateTitle($tituloNormalizado)
     {
-        // Obtiene todos los títulos normalizados existentes
         $existingTitles = Mencion::pluck('titulo_normalizado')->toArray();
         foreach ($existingTitles as $existing) {
-            // Usa similar_text para calcular el porcentaje de similitud
             similar_text($existing, $tituloNormalizado, $percent);
-            // Si la similitud es mayor que el 90% (ajusta el umbral si es necesario), considera que es duplicado
             if ($percent >= 90) {
                 return true;
             }
