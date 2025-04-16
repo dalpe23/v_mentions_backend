@@ -32,6 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    Route::post('alertas', [AlertaController::class, 'store']);
+
+
     // Rutas de Menciones (utilizamos apiResource para CRUD completo)
     Route::apiResource('menciones', MencionController::class);
     Route::patch('/menciones/{id}/leida', [MencionController::class, 'marcarComoLeida']);

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Alerta;
 
 use Illuminate\Http\Request;
+use App\Mail\NuevaAlertaMail;
+use Illuminate\Support\Facades\Mail;
 
 class AlertaController extends Controller
 {
@@ -36,9 +38,27 @@ class AlertaController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        //
-    }
+{
+    $validatedData = $request->validate([
+        'keywords' => 'required|string|min:3|max:100',
+        'idioma' => 'required|string',
+    ]);
+
+    $user = $request->user(); 
+
+    $alertaData = [
+        'keywords' => $validatedData['keywords'],
+        'idioma' => $validatedData['idioma'],
+        'user_id' => $user->id,
+    ];
+
+    Mail::to('daniel@mediosyproyectos.com')->send(new NuevaAlertaMail($alertaData));
+
+    return response()->json([
+        'message' => 'Alerta creada y correo enviado correctamente.'
+    ], 201);
+}
+
 
     /**
      * Display the specified resource.
