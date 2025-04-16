@@ -14,8 +14,6 @@ use App\Http\Controllers\ClienteController;
 | Estas rutas no requieren autenticación.
 */
 Route::post('login', [AuthController::class, 'login']);
-// Si tienes una ruta de registro, la podrías incluir aquí también.
-// Route::post('register', [AuthController::class, 'register']);
 
 /*
 |--------------------------------------------------------------------------
