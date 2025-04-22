@@ -1,0 +1,22 @@
+[33mf2e8a5b6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m validacion de algunas requests y de rutas de clientes para admins (instalar breeze y verificar en controllers)
+[33m4d303fd1[m añadido envío de correos para nuevas alertas, incluyendo validación de datos y creación de la clase NuevaAlertaMail; actualizado el archivo de rutas y la vista de correo. De momento remitente mi propio gmail.
+[33mf6410502[m comments quitados
+[33m815cf8a9[m intento de ClientePolicy
+[33m8dbf214c[m añadido servicio OpenAI para análisis de sentimiento y temática, actualizado comando de procesamiento de menciones para evitar duplicados y completar análisis, y configuradas claves API en el archivo de servicios
+[33m8dfa34bf[m añadido método para cambiar el sentimiento de una mención y actualizado el método show para usar el ID
+[33m9cc64b4b[m comando ahora pone las fuentes correctamente, evita duplicados y añadido el leido para menciones y resuelta para alertas
+[33m4ff83ced[m añadido lo de alertas resueltas
+[33m4e9c1c46[m crud de clientes correcto
+[33m1279f8e4[m funcionando menciones y alertas
+[33m0e7c03fe[m menciones por usuario mostrandose correctamente
+[33md1be6de8[m auth y rutas funcionando
+[33mb54323ad[m login, tokens y rutas protegidas
+[33mc2299629[m intento de añadir el auth para proteger rutas pero no funciona, creados controladores y rutas crud de clientes, y alertas
+[33m61e5a45b[m pequeños hotfixes
+[33md46f7e61[m arregladas relaciones y añadido que se genere una alerta_id de cada mencion al ejecutar el comando automaticamente al saltar de url
+[33m268fea8e[m Añadida ruta /api para que funcione y devuelva los datos como debia ser
+[33m74bebf5b[m cors añadido y configurado
+[33m26a84a4b[m Añadido que se actualicen las menciones cada minuto
+[33m87e400c6[m comando ProcesarMencionesRSS funcionando correctamente, añade a la BBDD sin carácteres especiales
+[33me63926ba[m migraciones y modelos, probando comando RSS
+[33me8ac84d6[m contenedores funcionando

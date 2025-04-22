@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'f6410502b4c4505f7e95559dc842e8e7ea8ca1fb',
+        'reference' => '4d303fd1043ebda25b974d94934137c4dc8ccec4',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -478,7 +478,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'f6410502b4c4505f7e95559dc842e8e7ea8ca1fb',
+            'reference' => '4d303fd1043ebda25b974d94934137c4dc8ccec4',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -805,8 +805,8 @@
         'psr/container-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.1|2.0',
-                1 => '^1.0 || ^2.0',
+                0 => '^1.0 || ^2.0',
+                1 => '1.1|2.0',
             ),
         ),
         'psr/event-dispatcher' => array(
