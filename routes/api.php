@@ -6,6 +6,7 @@ use App\Http\Controllers\MencionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AlertaController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\AlertEmailController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,5 +62,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rutas de Clientes:
     Route::apiResource('clientes', ClienteController::class);
+
+    // Rutas de correos de alerta
+    Route::get('/alert-emails', [AlertEmailController::class, 'index']);
+    Route::post('/alert-emails', [AlertEmailController::class, 'store']);
+    Route::delete('/alert-emails/{id}', [AlertEmailController::class, 'destroy']);
 
 });

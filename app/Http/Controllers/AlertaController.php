@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Alerta;
 
 use Illuminate\Http\Request;
@@ -9,6 +10,32 @@ use Illuminate\Support\Facades\Mail;
 
 class AlertaController extends Controller
 {
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'keywords' => 'required|string|min:3|max:100',
+            'idioma' => 'required|string',
+        ]);
+
+        $user = $request->user();
+
+        $alertaData = [
+            'keywords' => $validatedData['keywords'],
+            'idioma' => $validatedData['idioma'],
+            'user_id' => $user->id,
+        ];
+
+        Mail::to('danielalemanyp@gmail.com')->send(new NuevaAlertaMail($alertaData));
+
+        return response()->json([
+            'message' => 'Alerta creada y correo enviado correctamente.'
+        ], 201);
+    }
+
     /**
      * Devuelve las menciones asociadas a una alerta.
      */
@@ -27,53 +54,8 @@ class AlertaController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {      //añadir que solo se devuelvan las alertas del cliente logueado
-
-
-        
+    {
         return response()->json(Alerta::all());
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-{
-    $validatedData = $request->validate([
-        'keywords' => 'required|string|min:3|max:100',
-        'idioma' => 'required|string',
-    ]);
-
-    $user = $request->user(); 
-
-    $alertaData = [
-        'keywords' => $validatedData['keywords'],
-        'idioma' => $validatedData['idioma'],
-        'user_id' => $user->id,
-    ];
-
-    Mail::to('daniel@mediosyproyectos.com')->send(new NuevaAlertaMail($alertaData));
-
-    return response()->json([
-        'message' => 'Alerta creada y correo enviado correctamente.'
-    ], 201);
-}
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
     }
 
     /**
@@ -97,10 +79,10 @@ class AlertaController extends Controller
      */
     public function misAlertas(Request $request)
     {
-        $user = $request->user(); 
-        
+        $user = $request->user();
+
         $alertas = Alerta::where('user_id', $user->id)->get();
-        
+
         return response()->json($alertas);
     }
 
@@ -119,5 +101,21 @@ class AlertaController extends Controller
         $alerta->save();
 
         return response()->json(['message' => 'Alerta marcada como resuelta']);
+    }
+
+        /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
     }
 }

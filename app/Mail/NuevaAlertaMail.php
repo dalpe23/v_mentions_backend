@@ -30,7 +30,7 @@ class NuevaAlertaMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Nueva Alerta Recibida')
+            ->subject('➕ 📢 Nueva Alerta a añadir')
             ->markdown('emails.alerta');
     }
 }
