@@ -15,13 +15,13 @@ class ProcesarMencionesRSS extends Command
     public function handle()
     {
         $openAI = new OpenAIService();
-        $urls = config('url');
-        $alertaId = 0;
+        $feeds = config('url');  // Cargar el archivo de configuración completo
+        // Itera sobre cada alerta y su URL
+        foreach ($feeds as $alerta => $data) {
+            $alertaId = $data['alerta_id'];  // Obtener el alerta_id directamente desde el archivo de configuración
+            $url = $data['url'];  // Obtener la URL desde el archivo de configuración
 
-        // ----- Paso 1: Procesar nuevos feeds RSS -----
-        foreach ($urls as $url) {
-            $alertaId++;
-            $feed = Reader::import($url);
+            $feed = Reader::import($url);  // Cargar el feed RSS desde la URL
 
             foreach ($feed as $entry) {
                 $titulo = strip_tags(html_entity_decode($entry->getTitle() ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -49,7 +49,7 @@ class ProcesarMencionesRSS extends Command
                     'fuente'             => $fuente,
                     'fecha'              => $fecha,
                     'descripcion'        => $descripcion,
-                    'alerta_id'          => $alertaId,
+                    'alerta_id'          => $alertaId,  // Asignamos el alerta_id directamente desde la configuración
                 ]);
 
                 // Si la mención recién creada aún no tiene análisis, se procesa:
