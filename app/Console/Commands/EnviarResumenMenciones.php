@@ -14,6 +14,8 @@ class EnviarResumenMenciones extends Command
 
     public function handle()
     {
+        config(['logging.default' => 'stderr']);  // evita el error de "No se puede escribir en el archivo de registro"
+
         $usuarios = \App\Models\User::with('alertEmails')->get();
     
         foreach ($usuarios as $usuario) {

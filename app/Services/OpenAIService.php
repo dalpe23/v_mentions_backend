@@ -24,7 +24,7 @@ class OpenAIService
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => 'Eres un analista de sentimientos y temáticas de menciones en alertas. Responde únicamente en formato JSON con los campos "sentimiento" y "tematicas".'
+                            'content' => 'Eres un analista de sentimientos y temáticas de menciones en alertas, leerás su texto y determinarás si tienen en ellas algo positivo, negativo o si es de sentimiento neutro. Responde únicamente en formato JSON con los campos "sentimiento" y "tematicas".'
                         ],
                         [
                             'role' => 'user',
