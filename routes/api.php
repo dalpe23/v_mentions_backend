@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MencionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AlertaController;
+use App\Http\Controllers\AlertaFormController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\AlertEmailController;
 
@@ -33,7 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::post('alertas', [AlertaController::class, 'store']);
+    // Ruta para que el cliente envíe una alerta (manda correo)
+    Route::post('/alertas', [AlertaController::class, 'store']);
+
+    // Ruta para que el admin añada una alerta a la BBDD
+    Route::post('/alertas-form', [AlertaFormController::class, 'store']);
 
 
     // Rutas de Menciones (utilizamos apiResource para CRUD completo)

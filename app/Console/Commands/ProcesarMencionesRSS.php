@@ -6,6 +6,7 @@ use Laminas\Feed\Reader\Reader;
 use App\Models\Mencion;
 use Illuminate\Console\Command;
 use App\Services\OpenAIService;
+use App\Models\Alerta;
 
 class ProcesarMencionesRSS extends Command
 {
@@ -15,13 +16,14 @@ class ProcesarMencionesRSS extends Command
     public function handle()
     {
         $openAI = new OpenAIService();
-        $feeds = config('url');  // Cargar el archivo de configuración completo
-        // Itera sobre cada alerta y su URL
-        foreach ($feeds as $alerta => $data) {
-            $alertaId = $data['alerta_id'];  // Obtener el alerta_id directamente desde el archivo de configuración
-            $url = $data['url'];  // Obtener la URL desde el archivo de configuración
+        $alertas = Alerta::where('resuelta', false)->get(); // Solo alertas activas
+        // Itera sobre cada alerta de la base de datos
+        foreach ($alertas as $alerta) {
+            $alertaId = $alerta->id;
+            $url = $alerta->url;
+            if (!$url) continue;
 
-            $feed = Reader::import($url);  // Cargar el feed RSS desde la URL
+            $feed = Reader::import($url);
 
             foreach ($feed as $entry) {
                 $titulo = strip_tags(html_entity_decode($entry->getTitle() ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
@@ -48,6 +50,9 @@ class ProcesarMencionesRSS extends Command
                     if ($paisInferido && strtolower($paisInferido) !== 'desconocido') {
                         $fuentePais = $paisInferido;
                     }
+                }
+                if ($fuentePais) {
+                    $fuentePais = rtrim($fuentePais, ". ");
                 }
                 $fuente = $fuenteDominio;
                 if ($fuentePais) {
@@ -91,12 +96,6 @@ class ProcesarMencionesRSS extends Command
         $this->info("Menciones procesadas y completadas correctamente.");
     }
 
-    /**
-     * Analiza una mención usando el servicio OpenAI y actualiza sus campos de sentimiento y temática.
-     *
-     * @param \App\Models\Mencion $mencion
-     * @param \App\Services\OpenAIService $openAI
-     */
     protected function analizarYActualizarMencion($mencion, OpenAIService $openAI)
     {
         // Combina título y descripción para un análisis más completo
@@ -128,12 +127,6 @@ class ProcesarMencionesRSS extends Command
         }
     }
 
-    /**
-     * Normaliza un título: elimina HTML, lo convierte a minúsculas, quita acentos y signos de puntuación.
-     *
-     * @param string $title
-     * @return string
-     */
     protected function normalizeTitle($title)
     {
         $clean = html_entity_decode(strip_tags($title), ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -147,12 +140,6 @@ class ProcesarMencionesRSS extends Command
         return trim($normalized ?: $clean);
     }
 
-    /**
-     * Extrae el dominio real del enlace, eliminando el prefijo "www." si existe.
-     *
-     * @param string|null $enlace
-     * @return string
-     */
     protected function extraerDominio($enlace)
     {
         $dominio = 'Desconocido';
@@ -177,19 +164,13 @@ class ProcesarMencionesRSS extends Command
         return $dominio;
     }
 
-    /**
-     * Intenta extraer el país a partir del dominio de la URL.
-     * Si no se puede deducir, devuelve null.
-     * @param string|null $enlace
-     * @return string|null
-     */
     protected function extraerPaisDeUrl($enlace)
     {
         if (!$enlace) return null;
         $parsed = parse_url($enlace);
         if (!isset($parsed['host'])) return null;
         $host = $parsed['host'];
-        // Extraer TLD robusto
+        // Extraer TLD
         if (preg_match('/\.([a-z]{2,3})(?:\.|$)/i', $host, $matches)) {
             $tld = strtolower($matches[1]);
             $paises = [
@@ -207,12 +188,6 @@ class ProcesarMencionesRSS extends Command
         return null;
     }
 
-    /**
-     * Comprueba si existe una mención similar usando comparación fuzzy en el título normalizado.
-     *
-     * @param string $tituloNormalizado
-     * @return bool
-     */
     protected function isDuplicateTitle($tituloNormalizado)
     {
         $existingTitles = Mencion::pluck('titulo_normalizado')->toArray();
@@ -225,11 +200,6 @@ class ProcesarMencionesRSS extends Command
         return false;
     }
 
-    /**
-     * Detecta el idioma del texto usando la librería ext-intl.
-     * @param string $texto
-     * @return string|null Código ISO del idioma (ej: 'es', 'en', 'fr')
-     */
     protected function detectarIdioma($texto)
     {
         if (class_exists('Locale')) {
@@ -245,13 +215,7 @@ class ProcesarMencionesRSS extends Command
         return null;
     }
 
-    /**
-     * Asigna un país probable según el idioma detectado y el dominio.
-     * Si el dominio es de un país latinoamericano, lo prioriza.
-     * @param string|null $idioma
-     * @param string $dominio
-     * @return string|null
-     */
+
     protected function asignarPaisPorIdioma($idioma, $dominio)
     {
         $latam = [

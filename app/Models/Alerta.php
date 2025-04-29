@@ -12,6 +12,7 @@ class Alerta extends Model
         'nombre',
         'resuelta',
         'user_id',
+        'url',
     ];
 
     public function menciones()
