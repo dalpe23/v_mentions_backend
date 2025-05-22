@@ -7,7 +7,7 @@
 </p>
 
 
-# 🧠 VMentions - Backend (Español)
+# 🧠 VMentions - Backend
 
 ![VMentions Logo](VMentionsLogo.png)
 
