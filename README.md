@@ -1,66 +1,370 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <a href="https://www.php.net/"><img alt="PHP" src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white"/></a>
+  <a href="https://laravel.com/"><img alt="Laravel" src="https://img.shields.io/badge/Laravel-F05340?style=for-the-badge&logo=laravel&logoColor=white"/></a>
+  <a href="https://www.mysql.com/"><img alt="MySQL" src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/></a>
+  <a href="https://openrouter.ai/"><img alt="OpenRouter API" src="https://img.shields.io/badge/OpenRouter_API-000000?style=for-the-badge&logo=OpenAI&logoColor=white"/></a>
 </p>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# 🧠 VMentions - Backend (Español)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+![VMentions Logo](VMentionsLogo.png)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+> 🎯 **Plataforma inteligente para analizar menciones con IA.**  
+> Backend desarrollado en PHP para procesar alertas, gestionar usuarios y alimentar el panel de administración.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## ⚙️ ¿Qué hace este backend?
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 🔄 Procesa alertas de menciones desde Google Alerts RSS
+- 📩 Envía informes automáticos mensuales a cada cliente
+- 🧠 Analiza contenido con IA (temática y sentimiento)
+- 🧑‍💼 Panel de administración para gestionar usuarios, alertas y datos
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📦 Estructura del proyecto
 
-### Premium Partners
+```
+📂 v_mentions_backend/
+├── app/
+│   ├── Console/
+│   │   └── Commands/
+│   │       ├── ProcesarMencionesRSS.php
+│   │       └── ResumenMensual.php
+│   ├── Exceptions/
+│   │   └── Handler.php
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php
+│   │   │   ├── MentionController.php
+│   │   │   ├── UserController.php
+│   │   │   ├── AlertController.php
+│   │   │   └── DashboardController.php
+│   │   ├── Kernel.php
+│   │   └── Middleware/
+│   │       ├── Authenticate.php
+│   │       ├── CheckForMaintenanceMode.php
+│   │       ├── EncryptCookies.php
+│   │       ├── RedirectIfAuthenticated.php
+│   │       ├── TrimStrings.php
+│   │       └── VerifyCsrfToken.php
+│   ├── Mail/
+│   │   ├── ResumenMensualMail.php
+│   │   └── AlertaNuevaMail.php
+│   ├── Models/
+│   │   ├── Mention.php
+│   │   ├── User.php
+│   │   └── Alert.php
+│   ├── Providers/
+│   │   ├── AppServiceProvider.php
+│   │   ├── AuthServiceProvider.php
+│   │   ├── EventServiceProvider.php
+│   │   └── RouteServiceProvider.php
+│   └── Services/
+│       ├── IAService.php
+│       └── ExportService.php
+├── bootstrap/
+│   └── app.php
+├── config/
+│   ├── app.php
+│   ├── database.php
+│   └── mail.php
+├── database/
+│   ├── factories/
+│   │   └── UserFactory.php
+│   ├── migrations/
+│   │   ├── 2024_01_01_000000_create_users_table.php
+│   │   ├── 2024_01_01_000001_create_alerts_table.php
+│   │   └── 2024_01_01_000002_create_mentions_table.php
+│   └── seeders/
+│       └── DatabaseSeeder.php
+├── public/
+│   ├── main.php
+│   └── index.php
+├── resources/
+│   └── views/
+│       ├── welcome.blade.php
+│       └── emails/
+│           ├── resumen.blade.php
+│           └── alerta.blade.php
+├── routes/
+│   ├── web.php
+│   └── api.php
+├── storage/
+│   ├── app/
+│   ├── framework/
+│   └── logs/
+├── tests/
+│   └── Feature/
+│       └── MentionTest.php
+├── .env
+├── .env.example
+├── .gitignore
+├── artisan
+├── composer.json
+├── composer.lock
+├── docker-compose.yml
+├── sail
+└── README.md
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🚀 ¿Cómo arrancarlo?
 
-## Code of Conduct
+```bash
+# Clona el repositorio
+git clone https://github.com/dalpe23/v_mentions_backend.git
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Copia archivo .env y genera la clave
+cp .env.example .env
 
-## Security Vulnerabilities
+# Levanta el entorno con Docker + Sail
+./vendor/bin/sail up -d
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Instala dependencias dentro del contenedor
+./vendor/bin/sail composer install
 
-## License
+# Ejecuta migraciones
+./vendor/bin/sail php artisan migrate
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Lanza los comandos manualmente o añade al cron
+./vendor/bin/sail php artisan app:procesar-menciones-rss
+./vendor/bin/sail php artisan app:enviar-resumen-menciones
+```
+
+---
+
+## 📅 Tareas programadas
+
+| Tarea                    | Frecuencia   | Acción                                                             |
+|-------------------------|--------------|--------------------------------------------------------------------|
+| `ProcesarMencionesRSS`  | Cada día  | Recupera nuevas menciones y las analiza con IA                    |
+| `EnviarResumenMenciones`        | Mensual      | Envía email con las menciones negativas del mes a cada cliente    |
+
+> 🧪 *Estas tareas están programadas mediante `cron`.*
+
+---
+
+## 🔐 Seguridad
+
+- `.env` está excluido del repositorio con `.gitignore`
+- Las credenciales se cargan desde entorno seguro
+
+---
+
+## ✨ Características destacadas
+
+|Ventajas de VMentions |
+----------------------------------------------|
+| ✅ Panel unificado de menciones|
+| ✅ Filtros y exportación | 
+| ✅ IA para sentimiento y temática | 
+| ✅ Sin coste de licencias |
+---
+
+## 🧪 Frontend en Vue
+
+El frontend de este proyecto se encuentra en el siguiente repositorio:
+
+👉 [**v_mentions_frontend**](https://github.com/dalpe23/v_mentions_frontend)
+
+---
+
+## 📫 Contacto
+
+Creado con ❤️ por [dalpe23](https://github.com/dalpe23)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Contacto-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/daniel-alemany-p%C3%A9rez-256b57354/)
+
+---
+
+> ℹ️ ¿Ideas o mejoras? ¡Abre un issue o haz un pull request!
+
+
+---
+---
+---
+
+# 🧠 VMentions - Backend (English)
+
+> 🎯 **Smart platform to analyze mentions using AI.**  
+> Backend built in PHP to process alerts, manage users, and power the admin panel.
+
+---
+
+## ⚙️ What does this backend do?
+
+- 🔄 Processes mention alerts from Google Alerts RSS
+- 📩 Sends monthly automatic reports to each client
+- 🧠 Analyzes content with AI (topic and sentiment)
+- 🧑‍💼 Admin panel to manage users, alerts, and data
+
+---
+
+## 📦 Project structure
+
+```
+
+📂 v_mentions_backend/
+├── app/
+│   ├── Console/
+│   │   └── Commands/
+│   │       ├── ProcesarMencionesRSS.php
+│   │       └── ResumenMensual.php
+│   ├── Exceptions/
+│   │   └── Handler.php
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php
+│   │   │   ├── MentionController.php
+│   │   │   ├── UserController.php
+│   │   │   ├── AlertController.php
+│   │   │   └── DashboardController.php
+│   │   ├── Kernel.php
+│   │   └── Middleware/
+│   │       ├── Authenticate.php
+│   │       ├── CheckForMaintenanceMode.php
+│   │       ├── EncryptCookies.php
+│   │       ├── RedirectIfAuthenticated.php
+│   │       ├── TrimStrings.php
+│   │       └── VerifyCsrfToken.php
+│   ├── Mail/
+│   │   ├── ResumenMensualMail.php
+│   │   └── AlertaNuevaMail.php
+│   ├── Models/
+│   │   ├── Mention.php
+│   │   ├── User.php
+│   │   └── Alert.php
+│   ├── Providers/
+│   │   ├── AppServiceProvider.php
+│   │   ├── AuthServiceProvider.php
+│   │   ├── EventServiceProvider.php
+│   │   └── RouteServiceProvider.php
+│   └── Services/
+│       ├── IAService.php
+│       └── ExportService.php
+├── bootstrap/
+│   └── app.php
+├── config/
+│   ├── app.php
+│   ├── database.php
+│   └── mail.php
+├── database/
+│   ├── factories/
+│   │   └── UserFactory.php
+│   ├── migrations/
+│   │   ├── 2024_01_01_000000_create_users_table.php
+│   │   ├── 2024_01_01_000001_create_alerts_table.php
+│   │   └── 2024_01_01_000002_create_mentions_table.php
+│   └── seeders/
+│       └── DatabaseSeeder.php
+├── public/
+│   ├── main.php
+│   └── index.php
+├── resources/
+│   └── views/
+│       ├── welcome.blade.php
+│       └── emails/
+│           ├── resumen.blade.php
+│           └── alerta.blade.php
+├── routes/
+│   ├── web.php
+│   └── api.php
+├── storage/
+│   ├── app/
+│   ├── framework/
+│   └── logs/
+├── tests/
+│   └── Feature/
+│       └── MentionTest.php
+├── .env
+├── .env.example
+├── .gitignore
+├── artisan
+├── composer.json
+├── composer.lock
+├── docker-compose.yml
+├── sail
+└── README.md
+
+```
+
+---
+
+## 🚀 How to run it?
+
+```bash
+# Clone the repository
+git clone https://github.com/dalpe23/v_mentions_backend.git
+
+# Copy the .env file and generate the key
+cp .env.example .env
+
+# Start the environment with Docker + Sail
+./vendor/bin/sail up -d
+
+# Install dependencies inside the container
+./vendor/bin/sail composer install
+
+# Run migrations
+./vendor/bin/sail php artisan migrate
+
+# Run commands manually or schedule them
+./vendor/bin/sail php artisan app:procesar-menciones-rss
+./vendor/bin/sail php artisan app:enviar-resumen-menciones
+```
+
+---
+
+## 📅 Scheduled tasks
+
+| Task                        | Frequency  | Action                                                             |
+|-----------------------------|------------|--------------------------------------------------------------------|
+| `ProcesarMencionesRSS`      | Daily      | Retrieves new mentions and analyzes them with AI                  |
+| `EnviarResumenMenciones`    | Monthly    | Sends a summary email of negative mentions to each client         |
+
+> 🧪 *These tasks are scheduled using `cron`.*
+
+---
+
+## 🔐 Security
+
+- `.env` is excluded from the repository via `.gitignore`
+- Credentials are loaded from a secure environment
+
+---
+
+## ✨ Key features
+
+| Advantages of VMentions |
+|--------------------------|
+| ✅ Unified mention panel |
+| ✅ Filters and export    |
+| ✅ AI-based sentiment and topic analysis |
+| ✅ No licensing costs    |
+
+---
+
+## 🧪 Frontend in Vue
+
+The frontend of this project can be found in the following repository:
+
+👉 [**v_mentions_frontend**](https://github.com/dalpe23/v_mentions_frontend)
+
+---
+
+## 📫 Contact
+
+Made with ❤️ by [dalpe23](https://github.com/dalpe23)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Contact-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/daniel-alemany-p%C3%A9rez-256b57354/)
+
+---
+
+> ℹ️ Ideas or improvements? Open an issue or submit a pull request!
