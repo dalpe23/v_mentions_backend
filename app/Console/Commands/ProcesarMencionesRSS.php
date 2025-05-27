@@ -16,8 +16,7 @@ class ProcesarMencionesRSS extends Command
     public function handle()
     {
         $openAI = new OpenAIService();
-        $alertas = Alerta::where('resuelta', false)->get(); // Solo alertas activas
-        // Itera sobre cada alerta de la base de datos
+        $alertas = Alerta::where('resuelta', false)->get(); 
         foreach ($alertas as $alerta) {
             $alertaId = $alerta->id;
             $url = $alerta->url;
@@ -37,13 +36,12 @@ class ProcesarMencionesRSS extends Command
                 $descripcion = trim($descripcionLimpia);
 
                 $fuenteDominio = $this->extraerDominio($enlace);
-                $fuentePais = $this->extraerPaisDeUrl($enlace); // PRIORIDAD: TLD de país
-                // SOLO si NO hay país por TLD, intentar por idioma
+                $fuentePais = $this->extraerPaisDeUrl($enlace); 
                 if (!$fuentePais && $descripcion) {
                     $idioma = $this->detectarIdioma($titulo . ' ' . $descripcion);
                     $fuentePais = $this->asignarPaisPorIdioma($idioma, $fuenteDominio);
                 }
-                // SOLO si NO hay país por TLD ni por idioma, intentar inferirlo con OpenAIService usando contexto
+
                 if (!$fuentePais && $descripcion) {
                     $contexto = "Dominio: {$fuenteDominio}. Título: {$titulo}. Descripción: {$descripcion}";
                     $paisInferido = app(OpenAIService::class)->inferirPaisDesdeTexto($contexto);
@@ -59,12 +57,10 @@ class ProcesarMencionesRSS extends Command
                     $fuente .= ' - ' . $fuentePais;
                 }
 
-                // Evita duplicados (comparación fuzzy en título normalizado)
                 if ($this->isDuplicateTitle($tituloNormalizado)) {
                     continue;
                 }
 
-                // Creación de nueva mención (sentimiento y temática quedan nulos)
                 $mencion = Mencion::create([
                     'titulo'             => $titulo,
                     'titulo_normalizado' => $tituloNormalizado,
@@ -75,14 +71,12 @@ class ProcesarMencionesRSS extends Command
                     'alerta_id'          => $alertaId,
                 ]);
 
-                // Si la mención recién creada aún no tiene análisis, se procesa:
                 if (is_null($mencion->sentimiento) || is_null($mencion->tematica)) {
                     $this->analizarYActualizarMencion($mencion, $openAI);
                 }
             }
         }
 
-        // ----- Paso 2: Actualizar menciones existentes que no tienen análisis completado -----
         $mencionesIncompletas = Mencion::whereNull('sentimiento')
             ->orWhereNull('tematica')
             ->get();
@@ -98,7 +92,6 @@ class ProcesarMencionesRSS extends Command
 
     protected function analizarYActualizarMencion($mencion, OpenAIService $openAI)
     {
-        // Combina título y descripción para un análisis más completo
         $textoAnalizar = "{$mencion->titulo}. {$mencion->descripcion}";
         $analysis = $openAI->analizarSentimientoYTematica($textoAnalizar);
 
@@ -208,7 +201,6 @@ class ProcesarMencionesRSS extends Command
                 return substr($locale, 0, 2);
             }
         }
-        // Fallback simple: detectar español por palabras comunes
         if (preg_match('/\b(el|la|de|que|y|en|los|se|del|las|por|un|para|con|no|una|su|al|lo|como|más|pero|sus|le|ya|o|este|sí|porque|esta|entre|cuando|muy|sin|sobre|también|me|hasta|hay|donde|quien|desde|todo|nos|durante|todos|uno|les|ni|contra|otros|ese|eso|ante|ellos|e|esto|mí|antes|algunos|qué|unos|yo|otro|otras|otra|él|tanto|esa|estos|mucho|quienes|nada|muchos|cual|poco|ella|estar|estas|algunas|algo|nosotros|mi|mis|tú|te|ti|tu|tus|ellas|nosotras|vosotros|vosotras|os|mío|mía|míos|mías|tuyo|tuya|tuyos|tuyas|suyo|suya|suyos|suyas|nuestro|nuestra|nuestros|nuestras|vuestro|vuestra|vuestros|vuestras|esos|esas|estoy|estás|está|estamos|estáis|están|esté|estés|estemos|estéis|estén|estaré|estarás|estará|estaremos|estaréis|estarán|estaría|estarías|estaríamos|estaríais|estarían|estaba|estabas|estábamos|estabais|estaban|estuve|estuviste|estuvo|estuvimos|estuvisteis|estuvieron|estuviera|estuvieras|estuviéramos|estuvierais|estuvieran|estuviese|estuvieses|estuviésemos|estuvieseis|estuviesen|estando|estado|estada|estados|estadas|estad)\b/i', $texto)) {
             return 'es';
         }

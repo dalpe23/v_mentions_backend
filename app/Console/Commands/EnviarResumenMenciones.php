@@ -14,14 +14,13 @@ class EnviarResumenMenciones extends Command
 
     public function handle()
     {
-        config(['logging.default' => 'stderr']);  // evita el error de "No se puede escribir en el archivo de registro"
+        config(['logging.default' => 'stderr']); 
 
         $usuarios = \App\Models\User::with('alertEmails')->get();
     
         foreach ($usuarios as $usuario) {
             $this->info("Procesando usuario: {$usuario->id}");
 
-            // Mostrar menciones asociadas a alertas del usuario en el último mes, solo neutro o negativo
             $menciones = \App\Models\Mencion::whereHas('alerta', function ($q) use ($usuario) {
                 $q->where('user_id', $usuario->id);
             })
