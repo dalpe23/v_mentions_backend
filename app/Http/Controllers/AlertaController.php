@@ -23,18 +23,24 @@ class AlertaController extends Controller
 
         $user = $request->user();
 
-        $alertaData = [
+        $query = urlencode($validatedData['keywords']);
+        $rssUrl = "https://news.google.com/rss/search?q={$query}&hl=es";
+
+        $alerta = Alerta::create([
+            'nombre' => $validatedData['keywords'],
             'keywords' => $validatedData['keywords'],
             'idioma' => $validatedData['idioma'],
+            'url' => $rssUrl,
             'user_id' => $user->id,
-        ];
-
-        Mail::to('danielalemanyp@gmail.com')->send(new NuevaAlertaMail($alertaData));
+            'resuelta' => false,
+        ]);
 
         return response()->json([
-            'message' => 'Alerta creada y correo enviado correctamente.'
+            'message' => 'Alerta creada correctamente.',
+            'alerta' => $alerta,
         ], 201);
     }
+
 
     /**
      * Devuelve las menciones asociadas a una alerta.
@@ -103,7 +109,7 @@ class AlertaController extends Controller
         return response()->json(['message' => 'Alerta marcada como resuelta']);
     }
 
-        /**
+    /**
      * Display the specified resource.
      */
     public function show(string $id)
