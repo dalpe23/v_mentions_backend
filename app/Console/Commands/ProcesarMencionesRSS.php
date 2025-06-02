@@ -31,21 +31,20 @@ class ProcesarMencionesRSS extends Command
                 continue;
             }
 
-            foreach ($feed as $entry) {
-                $fechaRaw = $entry->getDateModified()?->format('Y-m-d H:i:s');
+            foreach ($feed as $noticia) {
+                $fechaRaw = $noticia->getDateModified()?->format('Y-m-d H:i:s');
                 $fecha     = $fechaRaw
                     ? Carbon::parse($fechaRaw)
                     : Carbon::now();
 
-                if ($fecha->lt(Carbon::now()->subWeek())) {
+                if ($fecha->lt(Carbon::now()->subWeek())) {     //solo actualiza menciones de la última semana
                     continue;
                 }
-                $fechaStr = $fecha->format('Y-m-d H:i:s');
 
-                $titulo            = strip_tags(html_entity_decode($entry->getTitle() ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                $titulo            = strip_tags(html_entity_decode($noticia->getTitle() ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
                 $tituloNormalizado = $this->normalizeTitle($titulo);
-                $enlace            = $entry->getLink() ?? '';
-                $fecha             = $entry->getDateModified()?->format('Y-m-d H:i:s') ?? now();
+                $enlace            = $noticia->getLink() ?? '';
+                $fecha             = $noticia->getDateModified()?->format('Y-m-d H:i:s') ?? now();
 
                 $m = Mencion::where('titulo_normalizado', $tituloNormalizado)->first();
                 if ($m) {
@@ -56,13 +55,21 @@ class ProcesarMencionesRSS extends Command
                     continue;
                 }
 
+                if ($this->isDuplicateTitle($tituloNormalizado)) {
+                    continue;
+                }
+
                 $descripcion = $openAI->generarDescripcionDesdeTitulo($titulo) ?? 'Sin descripción disponible.';
 
-                $xml       = @simplexml_load_string($entry->saveXml());
+                $xml       = @simplexml_load_string($noticia->saveXml());
                 $fuenteUrl = $xml && isset($xml->source) ? (string) $xml->source['url'] : $enlace;
 
                 $pais = $this->extraerPaisDeUrl($fuenteUrl)
                     ?? $this->inferirPaisPorIA($fuenteUrl, $titulo);
+
+                if ($pais) {
+                    $pais = rtrim($pais, ". \t\n\r\0\x0B");
+                }
 
                 $fuente = $fuenteUrl . ($pais ? " - {$pais}" : '');
 
@@ -136,28 +143,16 @@ class ProcesarMencionesRSS extends Command
         return trim($normalized ?: $clean);
     }
 
-    protected function extraerDominio($enlace)
+        protected function isDuplicateTitle(string $tituloNormalizado): bool
     {
-        $dominio = 'Desconocido';
-        if ($enlace) {
-            $parsed = parse_url($enlace);
-            if (isset($parsed['host'])) {
-                $host = preg_replace('/^www\./i', '', $parsed['host']);
-                if (in_array(strtolower($parsed['host']), ['google.com', 'www.google.com']) && isset($parsed['query'])) {
-                    parse_str($parsed['query'], $queryParams);
-                    if (isset($queryParams['url'])) {
-                        $urlReal = $queryParams['url'];
-                        $parsedReal = parse_url($urlReal);
-                        $dominio = isset($parsedReal['host']) ? preg_replace('/^www\./i', '', $parsedReal['host']) : $urlReal;
-                    } else {
-                        $dominio = $host;
-                    }
-                } else {
-                    $dominio = $host;
-                }
+        $existing = Mencion::pluck('titulo_normalizado')->toArray();
+        foreach ($existing as $antiguo) {
+            similar_text($antiguo, $tituloNormalizado, $porcientoDeSimilitud);
+            if ($porcientoDeSimilitud >= 90) {
+                return true;
             }
         }
-        return $dominio;
+        return false;
     }
 
     protected function extraerPaisDeUrl(string $url): ?string
@@ -357,15 +352,4 @@ class ProcesarMencionesRSS extends Command
         return $map[$tld] ?? null;
     }
 
-    protected function isDuplicateTitle($tituloNormalizado)
-    {
-        $existingTitles = Mencion::pluck('titulo_normalizado')->toArray();
-        foreach ($existingTitles as $existing) {
-            similar_text($existing, $tituloNormalizado, $percent);
-            if ($percent >= 90) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
