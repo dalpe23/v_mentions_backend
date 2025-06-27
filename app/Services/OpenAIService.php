@@ -14,6 +14,7 @@ class OpenAIService
             'headers' => [
                 'Authorization' => 'Bearer ' . config('services.openrouter.api_key'),
                 'Content-Type'  => 'application/json',
+                'HTTP-Referer'   => 'https://v-mentions.myp.com.es',
             ],
         ]);
     }
@@ -25,7 +26,7 @@ class OpenAIService
 
             $response = $client->post('chat/completions', [
                 'json' => [
-                    'model' => 'openai/gpt-3.5-turbo',
+                    'model' => 'openrouter/auto',
                     'messages' => [
                         [
                             'role' => 'system',
@@ -59,7 +60,7 @@ class OpenAIService
 
             $response = $client->post('chat/completions', [
                 'json' => [
-                    'model' => 'openai/gpt-3.5-turbo',
+                    'model' => 'openrouter/auto',
                     'messages' => [
                         [
                             'role' => 'system',
@@ -90,7 +91,7 @@ class OpenAIService
 
             $response = $client->post('chat/completions', [
                 'json' => [
-                    'model' => 'openai/gpt-3.5-turbo',
+                    'model' => 'openrouter/auto',
                     'messages' => [
                         [
                             'role' => 'system',
