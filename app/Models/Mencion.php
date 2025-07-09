@@ -13,6 +13,7 @@ class Mencion extends Model
         'titulo',
         'titulo_normalizado',
         'leida',
+        'notificada',
         'tematica',
         'fuente',
         'enlace',

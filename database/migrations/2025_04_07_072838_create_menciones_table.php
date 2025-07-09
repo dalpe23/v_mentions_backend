@@ -23,6 +23,7 @@ return new class extends Migration
             $table->text('tematica')->nullable();
             $table->text('titulo_normalizado')->nullable();
             $table->boolean('leida')->default(false);
+            $table->boolean('notificada')->default(false);
             $table->timestamps();
         });
     }

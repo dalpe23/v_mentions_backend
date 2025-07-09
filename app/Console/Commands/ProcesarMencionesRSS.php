@@ -8,6 +8,8 @@ use Illuminate\Console\Command;
 use App\Services\OpenAIService;
 use App\Models\Alerta;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NuevasMencionesMail;
 
 class ProcesarMencionesRSS extends Command
 {
@@ -19,6 +21,7 @@ class ProcesarMencionesRSS extends Command
         $openAI  = new OpenAIService();
         $alertas = Alerta::where('resuelta', false)->get();
 
+        $mencionesAnalizadas = collect();
         foreach ($alertas as $alerta) {
             if (! $alerta->url) {
                 continue;
@@ -52,6 +55,7 @@ class ProcesarMencionesRSS extends Command
                         continue;
                     }
                     $this->analizarYActualizarMencion($m, $openAI);
+                    $mencionesAnalizadas->push($m);
                     continue;
                 }
 
@@ -84,9 +88,44 @@ class ProcesarMencionesRSS extends Command
                 ]);
 
                 $this->analizarYActualizarMencion($m, $openAI);
+                $mencionesAnalizadas->push($m);
             }
         }
 
+        // Enviar email a cada usuario solo con las menciones analizadas en esta tanda
+        $usuarios = \App\Models\User::with('alertEmails')->get();
+        foreach ($usuarios as $usuario) {
+            $mencionesUsuario = $mencionesAnalizadas->filter(function($mencion) use ($usuario) {
+                return $mencion->alerta && $mencion->alerta->user_id == $usuario->id && !$mencion->notificada;
+            });
+
+            if ($mencionesUsuario->count() > 0 && $usuario->alertEmails->isNotEmpty()) {
+                // Agrupar por alerta y preparar detalles
+                $resumenAlertas = [];
+                $detallesAlertas = [];
+                foreach ($mencionesUsuario as $mencion) {
+                    $nombreAlerta = $mencion->alerta ? $mencion->alerta->nombre : 'Sin nombre';
+                    if (!isset($resumenAlertas[$nombreAlerta])) {
+                        $resumenAlertas[$nombreAlerta] = 0;
+                        $detallesAlertas[$nombreAlerta] = [];
+                    }
+                    $resumenAlertas[$nombreAlerta]++;
+                    $detallesAlertas[$nombreAlerta][] = [
+                        'titulo' => $mencion->titulo,
+                        'fecha' => $mencion->fecha,
+                    ];
+                }
+                foreach ($usuario->alertEmails as $alertEmail) {
+                    Mail::to($alertEmail->email)->send(new NuevasMencionesMail($resumenAlertas, $mencionesUsuario->count(), $detallesAlertas));
+                    $this->info("📧 Correo de nuevas menciones enviado a {$alertEmail->email} con " . $mencionesUsuario->count() . " menciones.");
+                }
+                // Marcar como notificadas las menciones enviadas
+                foreach ($mencionesUsuario as $mencion) {
+                    $mencion->notificada = 1;
+                    $mencion->save();
+                }
+            }
+        }
         $this->info("Menciones procesadas y completadas correctamente.");
     }
 
