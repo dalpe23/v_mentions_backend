@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Alerta;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Mail\NuevaAlertaMail;
 use Illuminate\Support\Facades\Mail;
+
 
 class AlertaController extends Controller
 {
@@ -19,16 +21,56 @@ class AlertaController extends Controller
         $validatedData = $request->validate([
             'keywords' => 'required|string|min:3|max:100',
             'idioma' => 'required|string',
+            'ceid' => 'nullable|string',
+            'hl' => 'nullable|string',
+            'gl' => 'nullable|string',
         ]);
 
         $user = $request->user();
 
         $query = urlencode($validatedData['keywords']);
-        $rssUrl = "https://news.google.com/rss/search?q={$query}&hl=es";
+        // Construir la URL RSS de Google News según idioma y país
+        $hl = $validatedData['hl'] ?? null;
+        $gl = $validatedData['gl'] ?? null;
+        $ceid = $validatedData['ceid'] ?? null; 
+
+        // Si no se envían los parámetros, usar por defecto el idioma de la alerta
+        if (!$hl || !$gl || !$ceid) {
+            switch ($validatedData['idioma']) {
+                case 'de':
+                    $hl = 'de'; $gl = 'DE'; $ceid = 'DE:de'; break;
+                case 'fr':
+                    $hl = 'fr'; $gl = 'FR'; $ceid = 'FR:fr'; break;
+                case 'it':
+                    $hl = 'it'; $gl = 'IT'; $ceid = 'IT:it'; break;
+                case 'pt':
+                    $hl = 'pt'; $gl = 'PT'; $ceid = 'PT:pt'; break;
+                case 'ru':
+                    $hl = 'ru'; $gl = 'RU'; $ceid = 'RU:ru'; break;
+                case 'zh':
+                    $hl = 'zh-CN'; $gl = 'CN'; $ceid = 'CN:zh'; break;
+                case 'ja':
+                    $hl = 'ja'; $gl = 'JP'; $ceid = 'JP:ja'; break;
+                case 'ko':
+                    $hl = 'ko'; $gl = 'KR'; $ceid = 'KR:ko'; break;
+                case 'ar':
+                    $hl = 'ar'; $gl = 'SA'; $ceid = 'SA:ar'; break;
+                case 'hi':
+                    $hl = 'hi'; $gl = 'IN'; $ceid = 'IN:hi'; break;
+                case 'en-GB':
+                    $hl = 'en-GB'; $gl = 'GB'; $ceid = 'GB:en'; break;
+                case 'en-US':
+                    $hl = 'en-US'; $gl = 'US'; $ceid = 'US:en'; break;
+                default:
+                    $hl = 'es'; $gl = 'ES'; $ceid = 'ES:es';
+            }
+        }
+        $rssUrl = "https://news.google.com/rss/search?q={$query}&hl={$hl}&gl={$gl}&ceid={$ceid}";
+
+        dd($validatedData);
 
         $alerta = Alerta::create([
             'nombre' => $validatedData['keywords'],
-            'keywords' => $validatedData['keywords'],
             'idioma' => $validatedData['idioma'],
             'url' => $rssUrl,
             'user_id' => $user->id,

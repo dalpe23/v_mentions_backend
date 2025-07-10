@@ -10,9 +10,14 @@ class Alerta extends Model
 
     protected $fillable = [
         'nombre',
-        'resuelta',
-        'user_id',
+        'keywords',
+        'idioma',
+        'ceid',
+        'hl',
+        'gl',
         'url',
+        'user_id',
+        'resuelta',
     ];
 
     public function menciones()

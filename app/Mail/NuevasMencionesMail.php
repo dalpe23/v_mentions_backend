@@ -35,7 +35,25 @@ class NuevasMencionesMail extends Mailable
             if (!empty($this->detallesAlertas[$alertaNombre])) {
                 $contenido .= '<ul style="margin: 8px 0 16px 18px;">';
                 foreach ($this->detallesAlertas[$alertaNombre] as $detalle) {
-                    $contenido .= '<li><b>' . e($detalle['titulo']) . '</b> <span style="color:#888;font-size:13px;">(' . e($detalle['fecha']) . ')</span></li>';
+                    $contenido .= '<li style="margin-bottom: 16px;">';
+                    $contenido .= '<b>' . e($detalle['titulo']) . '</b><br>';
+                    $contenido .= '<span style="color:#888;font-size:13px;">' . e($detalle['fecha']) . '</span><br>';
+                    if (!empty($detalle['descripcion'])) {
+                        $contenido .= '<div><b>Descripción:</b> ' . e($detalle['descripcion']) . '</div>';
+                    }
+                    if (!empty($detalle['fuente'])) {
+                        $contenido .= '<div><b>Fuente:</b> ' . e($detalle['fuente']) . '</div>';
+                    }
+                    if (!empty($detalle['enlace'])) {
+                        $contenido .= '<div><b>Enlace:</b> <a href="' . e($detalle['enlace']) . '" style="color: #3182ce;">Ver enlace</a></div>';
+                    }
+                    if (!empty($detalle['sentimiento'])) {
+                        $contenido .= '<div><b>Sentimiento:</b> ' . e($detalle['sentimiento']) . '</div>';
+                    }
+                    if (!empty($detalle['tematica'])) {
+                        $contenido .= '<div><b>Temática:</b> ' . e($detalle['tematica']) . '</div>';
+                    }
+                    $contenido .= '</li>';
                 }
                 $contenido .= '</ul>';
             }
@@ -47,6 +65,6 @@ class NuevasMencionesMail extends Mailable
         $contenido .= '</div>';
 
         return $this->subject('🔔 Tienes ' . $this->total . ' menciones nuevas en VMentions')
-                    ->html($contenido);
+            ->html($contenido);
     }
 }

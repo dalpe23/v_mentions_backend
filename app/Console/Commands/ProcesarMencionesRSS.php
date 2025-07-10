@@ -64,12 +64,39 @@ class ProcesarMencionesRSS extends Command
                 }
 
                 $descripcion = $openAI->generarDescripcionDesdeTitulo($titulo) ?? 'Sin descripción disponible.';
+                /*// Si es español y tiene más de un punto evitamos q haga dos descripciones juntas
+                if (($alerta->idioma ?? 'es') === 'es' && substr_count($descripcion, '.') > 1) {
+                    $descripcion = trim(explode('.', $descripcion)[0]) . '.';
+                }*/
 
                 $xml       = @simplexml_load_string($noticia->saveXml());
                 $fuenteUrl = $xml && isset($xml->source) ? (string) $xml->source['url'] : $enlace;
 
-                $pais = $this->extraerPaisDeUrl($fuenteUrl)
-                    ?? $this->inferirPaisPorIA($fuenteUrl, $titulo);
+
+                // Determinar país por idioma de la alerta si existe
+                $idiomaAlerta = $alerta->idioma ?? null;
+                $mapaIdiomaPais = [
+                    'es' => 'España',
+                    'en' => 'Reino Unido',
+                    'en-GB' => 'Reino Unido',
+                    'en-US' => 'Estados Unidos',
+                    'fr' => 'Francia',
+                    'de' => 'Alemania',
+                    'it' => 'Italia',
+                    'pt' => 'Portugal',
+                    'ru' => 'Rusia',
+                    'zh' => 'China',
+                    'ja' => 'Japón',
+                    'ko' => 'Corea del Sur',
+                    'ar' => 'Arabia Saudita',
+                    'hi' => 'India',
+                ];
+                if ($idiomaAlerta && isset($mapaIdiomaPais[$idiomaAlerta]) && $idiomaAlerta !== 'es') {
+                    $pais = $mapaIdiomaPais[$idiomaAlerta];
+                } else {
+                    $pais = $this->extraerPaisDeUrl($fuenteUrl)
+                        ?? $this->inferirPaisPorIA($fuenteUrl, $titulo);
+                }
 
                 if ($pais) {
                     $pais = rtrim($pais, ". \t\n\r\0\x0B");
@@ -95,7 +122,7 @@ class ProcesarMencionesRSS extends Command
         // Enviar email a cada usuario solo con las menciones analizadas en esta tanda
         $usuarios = \App\Models\User::with('alertEmails')->get();
         foreach ($usuarios as $usuario) {
-            $mencionesUsuario = $mencionesAnalizadas->filter(function($mencion) use ($usuario) {
+            $mencionesUsuario = $mencionesAnalizadas->filter(function ($mencion) use ($usuario) {
                 return $mencion->alerta && $mencion->alerta->user_id == $usuario->id && !$mencion->notificada;
             });
 
@@ -113,6 +140,11 @@ class ProcesarMencionesRSS extends Command
                     $detallesAlertas[$nombreAlerta][] = [
                         'titulo' => $mencion->titulo,
                         'fecha' => $mencion->fecha,
+                        'fuente' => $mencion->fuente,
+                        'enlace' => $mencion->enlace,
+                        'descripcion' => $mencion->descripcion,
+                        'sentimiento' => $mencion->sentimiento,
+                        'tematica' => $mencion->tematica,
                     ];
                 }
                 foreach ($usuario->alertEmails as $alertEmail) {
@@ -138,7 +170,42 @@ class ProcesarMencionesRSS extends Command
 
     protected function analizarYActualizarMencion($mencion, OpenAIService $openAI)
     {
-        $texto = "{$mencion->titulo}. {$mencion->descripcion}";
+        $alerta = $mencion->alerta;
+        $idioma = $alerta?->idioma ?? 'es';
+
+        $titulo = $mencion->titulo;
+        $descripcion = $mencion->descripcion;
+        $texto = "{$titulo}. {$descripcion}";
+
+        // Si no es español, traducimos antes de analizar
+        if ($idioma !== 'es') {
+            $idiomaNombre = match ($idioma) {
+                'en', 'en-GB', 'en-US' => 'inglés',
+                'fr' => 'francés',
+                'de' => 'alemán',
+                'it' => 'italiano',
+                'pt' => 'portugués',
+                'ru' => 'ruso',
+                'zh' => 'chino',
+                'ja' => 'japonés',
+                'ko' => 'coreano',
+                'ar' => 'árabe',
+                'hi' => 'hindi',
+                default => 'idioma original'
+            };
+
+            $tituloTraducido = $openAI->traducirATextoEspanol($titulo, $idiomaNombre);
+            $descripcionTraducida = $openAI->traducirATextoEspanol($descripcion, $idiomaNombre);
+
+            if ($tituloTraducido && $descripcionTraducida) {
+                $titulo = $tituloTraducido;
+                $descripcion = $descripcionTraducida;
+                $texto = "{$titulo}. {$descripcion}";
+            } else {
+                $this->error("No se pudo traducir la mención ID {$mencion->id}, se usará el texto original.");
+            }
+        }
+
         try {
             $analysis = $openAI->analizarSentimientoYTematica($texto);
         } catch (\Exception $e) {
@@ -153,16 +220,19 @@ class ProcesarMencionesRSS extends Command
                 'negativo', 'negative' => 'negativo',
                 default               => 'neutro',
             };
+
             $temas = is_array($analysis['tematicas'])
                 ? implode(', ', $analysis['tematicas'])
-                : '';
+                : ($analysis['tematicas'] ?? '');
 
             $mencion->update([
                 'sentimiento' => $sent,
                 'tematica'    => $temas,
+                'titulo'      => $titulo,
+                'descripcion' => $descripcion,
             ]);
 
-            $this->line("Mención ID {$mencion->id} actualizada: sentimiento={$sent}, tematica={$temas}");
+            $this->line("Mención ID {$mencion->id} actualizada: titulo: {$titulo}, sentimiento: {$sent}, temática: {$temas}");
         } else {
             $this->error("OpenAI no devolvió análisis para la mención ID {$mencion->id}");
         }
@@ -182,7 +252,7 @@ class ProcesarMencionesRSS extends Command
         return trim($normalized ?: $clean);
     }
 
-        protected function isDuplicateTitle(string $tituloNormalizado): bool
+    protected function isDuplicateTitle(string $tituloNormalizado): bool
     {
         $existing = Mencion::pluck('titulo_normalizado')->toArray();
         foreach ($existing as $antiguo) {
@@ -390,5 +460,4 @@ class ProcesarMencionesRSS extends Command
         }
         return $map[$tld] ?? null;
     }
-
 }
