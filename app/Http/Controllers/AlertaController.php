@@ -34,7 +34,7 @@ class AlertaController extends Controller
         $gl = $validatedData['gl'] ?? null;
         $ceid = $validatedData['ceid'] ?? null;
 
-        // Si no se envían los parámetros, usar por defecto el idioma de la alerta
+        // Si no se envían los parámetros, usar por defecto el idioma de la alerta.
         if (!$hl || !$gl || !$ceid) {
             switch ($validatedData['idioma']) {
                 case 'de':
