@@ -32,54 +32,93 @@ class AlertaController extends Controller
         // Construir la URL RSS de Google News según idioma y país
         $hl = $validatedData['hl'] ?? null;
         $gl = $validatedData['gl'] ?? null;
-        $ceid = $validatedData['ceid'] ?? null; 
+        $ceid = $validatedData['ceid'] ?? null;
 
         // Si no se envían los parámetros, usar por defecto el idioma de la alerta
         if (!$hl || !$gl || !$ceid) {
             switch ($validatedData['idioma']) {
                 case 'de':
-                    $hl = 'de'; $gl = 'DE'; $ceid = 'DE:de'; break;
+                    $hl = 'de';
+                    $gl = 'DE';
+                    $ceid = 'DE:de';
+                    break;
                 case 'fr':
-                    $hl = 'fr'; $gl = 'FR'; $ceid = 'FR:fr'; break;
+                    $hl = 'fr';
+                    $gl = 'FR';
+                    $ceid = 'FR:fr';
+                    break;
                 case 'it':
-                    $hl = 'it'; $gl = 'IT'; $ceid = 'IT:it'; break;
+                    $hl = 'it';
+                    $gl = 'IT';
+                    $ceid = 'IT:it';
+                    break;
                 case 'pt':
-                    $hl = 'pt'; $gl = 'PT'; $ceid = 'PT:pt'; break;
+                    $hl = 'pt';
+                    $gl = 'PT';
+                    $ceid = 'PT:pt';
+                    break;
                 case 'ru':
-                    $hl = 'ru'; $gl = 'RU'; $ceid = 'RU:ru'; break;
+                    $hl = 'ru';
+                    $gl = 'RU';
+                    $ceid = 'RU:ru';
+                    break;
                 case 'zh':
-                    $hl = 'zh-CN'; $gl = 'CN'; $ceid = 'CN:zh'; break;
+                    $hl = 'zh-CN';
+                    $gl = 'CN';
+                    $ceid = 'CN:zh';
+                    break;
                 case 'ja':
-                    $hl = 'ja'; $gl = 'JP'; $ceid = 'JP:ja'; break;
+                    $hl = 'ja';
+                    $gl = 'JP';
+                    $ceid = 'JP:ja';
+                    break;
                 case 'ko':
-                    $hl = 'ko'; $gl = 'KR'; $ceid = 'KR:ko'; break;
+                    $hl = 'ko';
+                    $gl = 'KR';
+                    $ceid = 'KR:ko';
+                    break;
                 case 'ar':
-                    $hl = 'ar'; $gl = 'SA'; $ceid = 'SA:ar'; break;
+                    $hl = 'ar';
+                    $gl = 'SA';
+                    $ceid = 'SA:ar';
+                    break;
                 case 'hi':
-                    $hl = 'hi'; $gl = 'IN'; $ceid = 'IN:hi'; break;
+                    $hl = 'hi';
+                    $gl = 'IN';
+                    $ceid = 'IN:hi';
+                    break;
                 case 'en-GB':
-                    $hl = 'en-GB'; $gl = 'GB'; $ceid = 'GB:en'; break;
+                    $hl = 'en-GB';
+                    $gl = 'GB';
+                    $ceid = 'GB:en';
+                    break;
                 case 'en-US':
-                    $hl = 'en-US'; $gl = 'US'; $ceid = 'US:en'; break;
+                    $hl = 'en-US';
+                    $gl = 'US';
+                    $ceid = 'US:en';
+                    break;
                 default:
-                    $hl = 'es'; $gl = 'ES'; $ceid = 'ES:es';
+                    $hl = 'es';
+                    $gl = 'ES';
+                    $ceid = 'ES:es';
             }
         }
         $rssUrl = "https://news.google.com/rss/search?q={$query}&hl={$hl}&gl={$gl}&ceid={$ceid}";
 
-        dd($validatedData);
-
-        $alerta = Alerta::create([
+        Log::info('Valor recibido de idioma', ['idioma' => $validatedData['idioma']]);
+        $data = [
             'nombre' => $validatedData['keywords'],
             'idioma' => $validatedData['idioma'],
             'url' => $rssUrl,
             'user_id' => $user->id,
             'resuelta' => false,
-        ]);
+        ];
+        \Log::info('Datos que se van a guardar en alerta', $data);
+        $alerta = Alerta::create($data);
 
         return response()->json([
             'message' => 'Alerta creada correctamente.',
-            'alerta' => $alerta,
+            'alerta' => $alerta->fresh(), // Esto recarga el modelo desde la base de datos
         ], 201);
     }
 

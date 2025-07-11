@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('alertas', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
+            $table->string('idioma')->nullable();
             $table->boolean('resuelta')->default(false);
             $table->string('url')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');

@@ -10,7 +10,6 @@ class Alerta extends Model
 
     protected $fillable = [
         'nombre',
-        'keywords',
         'idioma',
         'ceid',
         'hl',

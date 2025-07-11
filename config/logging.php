@@ -127,6 +127,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'alerta' => [
+        'driver' => 'single',
+        'path' => storage_path('logs/alerta.log'),
+        'level' => 'debug',
+    ],
+
     ],
 
 ];
