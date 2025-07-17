@@ -102,7 +102,9 @@ class ProcesarMencionesRSS extends Command
                     $pais = rtrim($pais, ". \t\n\r\0\x0B");
                 }
 
-                $fuente = $fuenteUrl . ($pais ? " - {$pais}" : '');
+                $dominioFinal = $this->extraerDominioLimpio($fuenteUrl);
+                $fuente = $dominioFinal . ($pais ? " - {$pais}" : '');
+
 
                 $m = Mencion::create([
                     'titulo'             => $titulo,
@@ -236,6 +238,23 @@ class ProcesarMencionesRSS extends Command
         } else {
             $this->error("OpenAI no devolvió análisis para la mención ID {$mencion->id}");
         }
+    }
+
+    protected function extraerDominioLimpio(string $url): string
+    {
+        // Si es un enlace de redirección de Google News u otros
+        $parsed = parse_url($url);
+        parse_str($parsed['query'] ?? '', $queryParams);
+
+        if (isset($queryParams['url'])) {
+            $url = $queryParams['url'];
+        }
+
+        // Limpiar www y devolver solo dominio base
+        $host = parse_url($url, PHP_URL_HOST) ?? $url;
+        $host = preg_replace('/^www\./i', '', $host);
+
+        return 'https://' . $host;
     }
 
 

@@ -113,7 +113,7 @@ class AlertaController extends Controller
             'user_id' => $user->id,
             'resuelta' => false,
         ];
-        \Log::info('Datos que se van a guardar en alerta', $data);
+        Log::info('Datos que se van a guardar en alerta', $data);
         $alerta = Alerta::create($data);
 
         return response()->json([
