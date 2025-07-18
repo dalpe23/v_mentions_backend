@@ -9,6 +9,7 @@ class Alerta extends Model
     protected $table = 'alertas';
 
     protected $fillable = [
+        'titulo',
         'nombre',
         'idioma',
         'ceid',

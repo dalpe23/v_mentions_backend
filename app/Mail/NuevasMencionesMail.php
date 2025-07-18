@@ -14,7 +14,7 @@ class NuevasMencionesMail extends Mailable
     public $total;
     public $detallesAlertas;
 
-    public function __construct($resumenAlertas, $total, $detallesAlertas = [])
+    public function __construct(array $resumenAlertas, int $total, array $detallesAlertas = [])
     {
         $this->resumenAlertas = $resumenAlertas;
         $this->total = $total;
@@ -30,14 +30,22 @@ class NuevasMencionesMail extends Mailable
         <div style="background: #fff; border-radius: 8px; padding: 32px; max-width: 600px; margin: 0 auto; font-family: Arial, Helvetica, sans-serif; color: #222; box-shadow: 0 2px 8px #eee;">
             <h2 style="color: #2d3748;">Tienes ' . e($this->total) . ' menciones nuevas</h2>';
 
-        foreach ($this->resumenAlertas as $alertaNombre => $cantidad) {
-            $contenido .= '<p>Para la alerta <b>' . e($alertaNombre) . '</b> tienes <b>' . e($cantidad) . '</b> nuevas menciones.';
-            if (!empty($this->detallesAlertas[$alertaNombre])) {
+        foreach ($this->resumenAlertas as $alerta) {
+            $titulo = $alerta['titulo'] ?? 'Sin título';
+            $nombre = $alerta['nombre'] ?? 'sin_nombre';
+            $cantidad = $alerta['cantidad'] ?? 0;
+
+            $contenido .= '<p>Para la alerta <b>' . e($titulo) .
+                          '</b> con keywords <b>' . e($nombre) .
+                          '</b> tienes <b>' . e($cantidad) . '</b> nuevas menciones.';
+
+            if (!empty($this->detallesAlertas[$nombre])) {
                 $contenido .= '<ul style="margin: 8px 0 16px 18px;">';
-                foreach ($this->detallesAlertas[$alertaNombre] as $detalle) {
-                    $contenido .= '<li style="margin-bottom: 16px;">';
-                    $contenido .= '<b>' . e($detalle['titulo']) . '</b><br>';
-                    $contenido .= '<span style="color:#888;font-size:13px;">' . e($detalle['fecha']) . '</span><br>';
+                foreach ($this->detallesAlertas[$nombre] as $detalle) {
+                    $contenido .= '<li style="margin-bottom: 16px;">'
+                                . '<b>' . e($detalle['titulo']) . '</b><br>'
+                                . '<span style="color:#888;font-size:13px;">' . e($detalle['fecha']) . '</span><br>';
+
                     if (!empty($detalle['descripcion'])) {
                         $contenido .= '<div><b>Descripción:</b> ' . e($detalle['descripcion']) . '</div>';
                     }
@@ -53,10 +61,12 @@ class NuevasMencionesMail extends Mailable
                     if (!empty($detalle['tematica'])) {
                         $contenido .= '<div><b>Temática:</b> ' . e($detalle['tematica']) . '</div>';
                     }
+
                     $contenido .= '</li>';
                 }
                 $contenido .= '</ul>';
             }
+
             $contenido .= '</p>';
         }
 
@@ -65,6 +75,6 @@ class NuevasMencionesMail extends Mailable
         $contenido .= '</div>';
 
         return $this->subject('🔔 Tienes ' . $this->total . ' menciones nuevas en VMentions')
-            ->html($contenido);
+                    ->html($contenido);
     }
 }

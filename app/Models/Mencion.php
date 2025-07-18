@@ -20,6 +20,7 @@ class Mencion extends Model
         'fecha',
         'descripcion',
         'sentimiento',
+        'titulo_alerta',
     ];
 
     public function alerta()

@@ -64,10 +64,6 @@ class ProcesarMencionesRSS extends Command
                 }
 
                 $descripcion = $openAI->generarDescripcionDesdeTitulo($titulo) ?? 'Sin descripción disponible.';
-                /*// Si es español y tiene más de un punto evitamos q haga dos descripciones juntas
-                if (($alerta->idioma ?? 'es') === 'es' && substr_count($descripcion, '.') > 1) {
-                    $descripcion = trim(explode('.', $descripcion)[0]) . '.';
-                }*/
 
                 $xml       = @simplexml_load_string($noticia->saveXml());
                 $fuenteUrl = $xml && isset($xml->source) ? (string) $xml->source['url'] : $enlace;
@@ -114,6 +110,7 @@ class ProcesarMencionesRSS extends Command
                     'fecha'              => $fecha,
                     'descripcion'        => $descripcion,
                     'alerta_id'          => $alerta->id,
+                    'titulo_alerta'      => $alerta->titulo,
                 ]);
 
                 $this->analizarYActualizarMencion($m, $openAI);
@@ -132,14 +129,29 @@ class ProcesarMencionesRSS extends Command
                 // Agrupar por alerta y preparar detalles
                 $resumenAlertas = [];
                 $detallesAlertas = [];
+
                 foreach ($mencionesUsuario as $mencion) {
-                    $nombreAlerta = $mencion->alerta ? $mencion->alerta->nombre : 'Sin nombre';
-                    if (!isset($resumenAlertas[$nombreAlerta])) {
-                        $resumenAlertas[$nombreAlerta] = 0;
-                        $detallesAlertas[$nombreAlerta] = [];
+                    if (!$mencion->alerta) {
+                        continue;
                     }
-                    $resumenAlertas[$nombreAlerta]++;
-                    $detallesAlertas[$nombreAlerta][] = [
+
+                    $nombreAlerta = $mencion->alerta->nombre;
+                    $tituloAlerta = $mencion->alerta->titulo;
+
+                    $clave = $nombreAlerta; // sigue siendo clave para agrupar detalles
+
+                    if (!isset($resumenAlertas[$clave])) {
+                        $resumenAlertas[$clave] = [
+                            'nombre' => $nombreAlerta,
+                            'titulo' => $tituloAlerta,
+                            'cantidad' => 0
+                        ];
+                        $detallesAlertas[$clave] = [];
+                    }
+
+                    $resumenAlertas[$clave]['cantidad']++;
+
+                    $detallesAlertas[$clave][] = [
                         'titulo' => $mencion->titulo,
                         'fecha' => $mencion->fecha,
                         'fuente' => $mencion->fuente,
@@ -150,7 +162,10 @@ class ProcesarMencionesRSS extends Command
                     ];
                 }
                 foreach ($usuario->alertEmails as $alertEmail) {
-                    Mail::to($alertEmail->email)->send(new NuevasMencionesMail($resumenAlertas, $mencionesUsuario->count(), $detallesAlertas));
+                    Mail::to($alertEmail->email)->send(
+                        new \App\Mail\NuevasMencionesMail(array_values($resumenAlertas), $mencionesUsuario->count(), $detallesAlertas)
+                    );
+
                     $this->info("📧 Correo de nuevas menciones enviado a {$alertEmail->email} con " . $mencionesUsuario->count() . " menciones.");
                 }
                 // Marcar como notificadas las menciones enviadas

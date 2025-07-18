@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/alertas', [AlertaController::class, 'store']);
     Route::put('/alertas/{id}', [AlertaController::class, 'update']);
     Route::delete('/alertas/{id}', [AlertaController::class, 'destroy']);
-    Route::patch('/alertas/{id}', [AlertaController::class, 'marcarComoResuelta']);
+    Route::patch('/alertas/{id}/estado', [AlertaController::class, 'cambiarEstadoResuelta']);
 
     Route::get('/alertas/{id}/menciones', [AlertaController::class, 'mencionesDeAlerta']);
     
